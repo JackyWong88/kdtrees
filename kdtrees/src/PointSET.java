@@ -10,8 +10,6 @@ import edu.princeton.cs.algs4.StdDraw;
  * @author Jacky
  */
 public class PointSET {
-    Point2D point;
-    Stack stack;
     RedBlackBST<Point2D, Integer> tree;
     int count;
     

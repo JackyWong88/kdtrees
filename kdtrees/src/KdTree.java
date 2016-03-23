@@ -14,8 +14,6 @@ import edu.princeton.cs.algs4.Stack;
  * @author Jacky
  */
 public class KdTree {
-    Point2D point;
-    Stack stack;
     
     public KdTree() {                              // construct an empty set of points 
         
@@ -42,11 +40,13 @@ public class KdTree {
     }
 
     public Iterable<Point2D> range(RectHV rect) {            // all points that are inside the rectangle 
-        return stack;
+        Stack<Point2D> range = new Stack<Point2D>();
+        return range;
     }
 
     public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty 
-        return point;
+        Point2D champion = null;
+        return champion;
     }
 
     public static void main(String[] args) {                 // unit testing of the methods (optional) 
