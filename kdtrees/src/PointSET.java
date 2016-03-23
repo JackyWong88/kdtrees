@@ -3,6 +3,7 @@ import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.RedBlackBST;
 import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.StdDraw;
 
 /**
  *
@@ -36,17 +37,35 @@ public class PointSET {
     }
 
     public void draw() {                        // draw all points to standard draw 
+        StdDraw.show(0);
         for (Point2D p : tree.keys()) {
-            
+            StdDraw.setXscale(0,1);
+            StdDraw.setYscale(0,1);
+            p.draw();
         }
+        StdDraw.show();
     }
 
     public Iterable<Point2D> range(RectHV rect) {            // all points that are inside the rectangle 
-        return stack;
+        Stack<Point2D> range = new Stack<Point2D>();
+        for (Point2D p : tree.keys()) {
+            if (p.x() > rect.xmin() && p.x() < rect.xmax() && p.y() > rect.ymin() && p.y() < rect.ymax()) {
+                range.push(p);
+            }
+        }
+        return range;
     }
 
     public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty 
-        return point;
+        Point2D champion = null;
+        int shortest = 2;
+        for (Point2D thatp : tree.keys()) {
+            if (p.equals(thatp)) continue;
+            if (p.distanceTo(thatp) < shortest) {
+                champion = thatp;
+            }
+        }
+        return champion;
     }
 
     public static void main(String[] args) {                 // unit testing of the methods (optional) 
