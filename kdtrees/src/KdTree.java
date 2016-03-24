@@ -1,6 +1,7 @@
 
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.RedBlackBST;
 import edu.princeton.cs.algs4.Stack;
 
 /*
@@ -14,6 +15,8 @@ import edu.princeton.cs.algs4.Stack;
  * @author Jacky
  */
 public class KdTree {
+    private RedBlackBST<Point2D, Integer> tree;
+    private int count;
     
     public KdTree() {                              // construct an empty set of points 
         

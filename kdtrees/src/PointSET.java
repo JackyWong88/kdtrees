@@ -10,15 +10,15 @@ import edu.princeton.cs.algs4.StdDraw;
  * @author Jacky
  */
 public class PointSET {
-    RedBlackBST<Point2D, Integer> tree;
-    int count;
+    private RedBlackBST<Point2D, Integer> tree;
+    private int count = 0;
     
     public PointSET() {                              // construct an empty set of points 
-        RedBlackBST<Point2D, Integer> tree = new RedBlackBST<Point2D, Integer>();
+        tree = new RedBlackBST<Point2D, Integer>();
     }
 
     public boolean isEmpty() {                     // is the set empty? 
-        return tree.isEmpty();
+        return count == 0;
     }
 
     public int size() {                        // number of points in the set 
@@ -26,7 +26,7 @@ public class PointSET {
     }
 
     public void insert(Point2D p) {             // add the point to the set (if it is not already in the set)
-        tree.put(p,count);
+        tree.put(p, count);
         count++;
     }
 
@@ -37,8 +37,8 @@ public class PointSET {
     public void draw() {                        // draw all points to standard draw 
         StdDraw.show(0);
         for (Point2D p : tree.keys()) {
-            StdDraw.setXscale(0,1);
-            StdDraw.setYscale(0,1);
+            StdDraw.setXscale(0, 1);
+            StdDraw.setYscale(0, 1);
             p.draw();
         }
         StdDraw.show();
@@ -47,7 +47,7 @@ public class PointSET {
     public Iterable<Point2D> range(RectHV rect) {            // all points that are inside the rectangle 
         Stack<Point2D> range = new Stack<Point2D>();
         for (Point2D p : tree.keys()) {
-            if (p.x() > rect.xmin() && p.x() < rect.xmax() && p.y() > rect.ymin() && p.y() < rect.ymax()) {
+            if (p.x() >= rect.xmin() && p.x() <= rect.xmax() && p.y() >= rect.ymin() && p.y() <= rect.ymax()) {
                 range.push(p);
             }
         }
@@ -56,10 +56,11 @@ public class PointSET {
 
     public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty 
         Point2D champion = null;
-        int shortest = 2;
+        double shortest = 2;
         for (Point2D thatp : tree.keys()) {
-            if (p.equals(thatp)) continue;
-            if (p.distanceTo(thatp) < shortest) {
+            double distance = p.distanceTo(thatp);
+            if (distance < shortest) {
+                shortest = distance;
                 champion = thatp;
             }
         }
@@ -67,7 +68,8 @@ public class PointSET {
     }
 
     public static void main(String[] args) {                 // unit testing of the methods (optional) 
-        
+        PointSET set = new PointSET();
+        set.insert(new Point2D(0, 1));
     }
 
 }
