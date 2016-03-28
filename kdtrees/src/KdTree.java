@@ -17,7 +17,7 @@ import edu.princeton.cs.algs4.StdDraw;
  */
 public class KdTree {
     private int count = 0;
-    private XNode root;
+    private YNode root;
     
     private static abstract class Node{
         private Point2D p;
@@ -79,7 +79,12 @@ public class KdTree {
 
         @Override
         void drawLine(Point2D point) {
-            
+            setPenColor();
+            if (compareTo(point) > 0) {
+                StdDraw.line(this.p.x(), 1, this.p.x(), point.y());
+            } else {
+                StdDraw.line(point.x(), this.p.y(), 0, this.p.y());
+            }
         }
     }
 
@@ -124,7 +129,12 @@ public class KdTree {
 
         @Override
         void drawLine(Point2D point) {
-            
+            setPenColor();
+            if (compareTo(point) > 0) {
+                StdDraw.line(point.x(), this.p.y(), 1, this.p.y());
+            } else {
+                StdDraw.line(point.x(), this.p.y(), 0, this.p.y());
+            }
         }
     }
     
@@ -142,7 +152,7 @@ public class KdTree {
 
     public void insert(Point2D p) {             // add the point to the set (if it is not already in the set)
         if (isEmpty()) {
-            root = new XNode(p, count);
+            root = new YNode(p, count);
             count++;
         } else {
             Node node = root;
@@ -200,8 +210,11 @@ public class KdTree {
         int cmphi = hi.compareTo(x.p);
         if (cmplo < 0) draw(x.left, lo, hi, x);
         if (cmplo <= 0 && cmphi >= 0) {
+            StdOut.print("Drawing: ");
+            StdOut.println(x.p);
             x.p.draw();
-            x.drawLine(parent.p);
+            if (parent != null )x.drawLine(parent.p);
+            else StdDraw.line(x.p.x(), 0, x.p.x(), 1);
         }
         if (cmphi > 0) draw(x.right, lo, hi, x);
     }
