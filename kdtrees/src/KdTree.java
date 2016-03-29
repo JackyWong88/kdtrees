@@ -10,47 +10,53 @@ import edu.princeton.cs.algs4.StdDraw;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Jacky
  */
 public class KdTree {
+
     private int count = 0;
     private YNode root;
-    
-    private static abstract class Node{
-        private Point2D p;
-        private Node left, right;  // left and right subtrees
-        private int val;             // number of nodes in subtree
-        
+
+    private abstract static class Node {
+
+        Point2D p;
+        Node left, right;  // left and right subtrees
+        int val;
+
         abstract int compareTo(Point2D p);
+
         abstract int compareTo(RectHV rect);
+
         abstract Node makeNode(Point2D p, int n);
+
         //abstract RectHV rectCompute(RectHV parentRect, String side);
         abstract void setPenColor();
+
         //abstract void lineThroughPoint(Point2D point);
         abstract void drawLine(Point2D point);
-        
-        private Node(Point2D key, int val) {
-            this.p = key;
+
+        private Node(Point2D p, int val) {
+            this.p = p;
             this.val = val;
+            left = null;
+            right = null;
         }
     }
-    
-    private class YNode extends Node{
-        private Point2D p;
-        private Node left, right, parent;  // left and right subtrees
-        private int N;             // number of nodes in subtree
-        
-        private YNode(Point2D p, int n) {
-            super(p, n);
+
+    private class YNode extends Node {
+
+        private YNode(Point2D p, int val) {
+            super(p, val);
         }
 
         @Override
         int compareTo(Point2D p) {
-            if (this.p.y() < p.y()) return -1;
-            if (this.p.y() > p.y()) return 1;
+            if (this.p.x() < p.x()) return 1;
+            else if (this.p.x() > p.x()) return -1;
+            else if (this.p.y() > p.y()) return 1;
+            else if (this.p.y() < p.y()) return -1;
             return 0;
         }
 
@@ -62,7 +68,7 @@ public class KdTree {
         }
 
         @Override
-        Node makeNode(Point2D p, int n){
+        Node makeNode(Point2D p, int n) {
             return new XNode(p, n);
         }
 
@@ -80,7 +86,7 @@ public class KdTree {
         @Override
         void drawLine(Point2D point) {
             setPenColor();
-            if (compareTo(point) > 0) {
+            if (compareTo(point) < 0) {
                 StdDraw.line(this.p.x(), 1, this.p.x(), point.y());
             } else {
                 StdDraw.line(point.x(), this.p.y(), 0, this.p.y());
@@ -88,19 +94,18 @@ public class KdTree {
         }
     }
 
-    private class XNode extends Node{
-        private Point2D p;
-        private Node left, right, parent;  // left and right subtrees
-        private int N;             // number of nodes in subtree
-        
+    private class XNode extends Node {
+
         private XNode(Point2D p, int n) {
             super(p, n);
         }
 
         @Override
         int compareTo(Point2D p) {
-            if (this.p.x() < p.x()) return -1;
-            if (this.p.x() > p.x()) return 1;
+            if (this.p.y() < p.y()) return 1;
+            if (this.p.y() > p.y()) return -1;
+            else if (this.p.x() < p.x()) return 1;
+            else if (this.p.x() > p.x()) return -1;
             return 0;
         }
 
@@ -112,7 +117,7 @@ public class KdTree {
         }
 
         @Override
-        Node makeNode(Point2D p, int n){
+        Node makeNode(Point2D p, int n) {
             return new YNode(p, n);
         }
 
@@ -130,16 +135,16 @@ public class KdTree {
         @Override
         void drawLine(Point2D point) {
             setPenColor();
-            if (compareTo(point) > 0) {
+            if (compareTo(point) < 0) {
                 StdDraw.line(point.x(), this.p.y(), 1, this.p.y());
             } else {
                 StdDraw.line(point.x(), this.p.y(), 0, this.p.y());
             }
         }
     }
-    
+
     public KdTree() {                              // construct an empty set of points 
-        
+
     }
 
     public boolean isEmpty() {                     // is the set empty? 
@@ -157,64 +162,80 @@ public class KdTree {
         } else {
             Node node = root;
             Node parent = null;
-            while(node != null) {
+            while (node != null) {
                 int cmp = node.compareTo(p);
-                if (cmp > 0) {
+                //StdOut.println("Comparing " + node.p + " and " + p + "results : " + cmp);
+                if (cmp < 0) {
                     parent = node;
                     node = node.left;
-                }
-                if (cmp < 0) {
+                } else if (cmp > 0) {
                     parent = node;
                     node = node.right;
                 } else return;
             }
-            
             int cmp = parent.compareTo(p);
-            if (cmp > 0) {
+            if (cmp < 0) {
                 parent.left = parent.makeNode(p, count);
                 count++;
+                return;
             } else {
                 parent.right = parent.makeNode(p, count);
                 count++;
+                return;
             }
         }
     }
 
+    private Node insert(Node x, Point2D key, int val) {
+        //if (x == null) return new Node(key, val);
+        int cmp = key.compareTo(x.p);
+        if (cmp < 0) x.left = insert(x.left, key, val);
+        else if (cmp > 0) x.right = insert(x.right, key, val);
+        else x.val = val;
+        return x;
+    }
+
     public boolean contains(Point2D p) {           // does the set contain point p? 
         Node node = root;
-        while(node != null) {
+        while (node != null) {
             int cmp = node.compareTo(p);
-            if (cmp > 0) node = node.left;
-            else if (cmp < 0) node = node.right;
-            else return true;
+            if (cmp < 0) node = node.left;
+            else if (cmp > 0) node = node.right;
+            else {
+                //StdOut.println(node.p + " is equal to " + p);
+                return true;
+            }
         }
         return false;
     }
 
     public void draw() {                        // draw all points to standard draw 
-        if(isEmpty()) return;
+        if (isEmpty()) return;
         Node max = root;
-        while(max.right != null) {
+        while (max.right != null) {
             max = max.right;
         }
         Node min = root;
-        while(min.left != null) {
+        while (min.left != null) {
             min = min.left;
         }
         draw(root, min.p, max.p, null);
     }
-    
+
     private void draw(Node x, Point2D lo, Point2D hi, Node parent) {
         if (x == null) return;
-        int cmplo = lo.compareTo(x.p);
-        int cmphi = hi.compareTo(x.p);
+        int cmplo = x.compareTo(lo);
+        int cmphi = x.compareTo(hi);
         if (cmplo < 0) draw(x.left, lo, hi, x);
         if (cmplo <= 0 && cmphi >= 0) {
-            StdOut.print("Drawing: ");
-            StdOut.println(x.p);
+//            StdOut.print("Drawing: ");
+//            StdOut.println(x.p);
             x.p.draw();
-            if (parent != null )x.drawLine(parent.p);
-            else StdDraw.line(x.p.x(), 0, x.p.x(), 1);
+            if (parent != null) x.drawLine(parent.p);
+            else {
+                x.setPenColor();
+                StdDraw.line(x.p.x(), 0, x.p.x(), 1);
+            }
         }
         if (cmphi > 0) draw(x.right, lo, hi, x);
     }
@@ -228,16 +249,27 @@ public class KdTree {
         Point2D champion = null;
         return champion;
     }
-    
-    
-    private static int binlog( int bits ) // returns 0 for bits=0
+
+    private static int binlog(int bits) // returns 0 for bits=0
     {
         int log = 0;
-        if( ( bits & 0xffff0000 ) != 0 ) { bits >>>= 16; log = 16; }
-        if( bits >= 256 ) { bits >>>= 8; log += 8; }
-        if( bits >= 16  ) { bits >>>= 4; log += 4; }
-        if( bits >= 4   ) { bits >>>= 2; log += 2; }
-        return log + ( bits >>> 1 );
+        if ((bits & 0xffff0000) != 0) {
+            bits >>>= 16;
+            log = 16;
+        }
+        if (bits >= 256) {
+            bits >>>= 8;
+            log += 8;
+        }
+        if (bits >= 16) {
+            bits >>>= 4;
+            log += 4;
+        }
+        if (bits >= 4) {
+            bits >>>= 2;
+            log += 2;
+        }
+        return log + (bits >>> 1);
     }
 
     public static void main(String[] args) {                 // unit testing of the methods (optional) 
