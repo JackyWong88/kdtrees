@@ -36,7 +36,7 @@ public class KdTree {
         abstract void setPenColor();
 
         //abstract void lineThroughPoint(Point2D point);
-        abstract void drawLine(Point2D point);
+        abstract void drawLine();
 
 //        private Node(Point2D p, int val) {
 //            this.p = p;
@@ -50,7 +50,8 @@ public class KdTree {
         private Point2D p;
         private Node left, right;  // left and right subtrees
         private int val;
-        private double bound;
+        private double upbound, lowbound;
+        private double lbound, rbound;
 
         private YNode(Point2D p, int val) {
             this.p = p;
@@ -77,7 +78,21 @@ public class KdTree {
 
         @Override
         Node makeNode(Point2D p, int n) {
-            return new XNode(p, n);
+            XNode node = new XNode(p, n);
+            int cmp = compareTo(p);
+            if (cmp < 0) {
+                node.rbound = this.p.x();
+                node.lbound = lbound;
+            } else if (cmp > 0) {
+                node.lbound = this.p.x();
+                node.rbound = rbound;
+            } else {
+                node.lbound = this.p.x();
+                node.rbound = this.p.x();
+            }
+            node.upbound = upbound;
+            node.lowbound = lowbound;
+            return node;
         }
 
         public int compareTo(Node that) {
@@ -93,14 +108,9 @@ public class KdTree {
             StdDraw.setPenColor(StdDraw.RED);
         }
 
-        @Override
-        void drawLine(Point2D point) {
+        void drawLine() {
             setPenColor();
-            if (compareTo(point) < 0) {
-                StdDraw.line(this.p.x(), 1, this.p.x(), point.y());
-            } else {
-                StdDraw.line(this.p.x(), 0, this.p.x(), point.y());
-            }
+            StdDraw.line(this.p.x(), lowbound, this.p.x(), upbound);
         }
     }
 
@@ -108,7 +118,8 @@ public class KdTree {
         private Point2D p;
         private Node left, right;  // left and right subtrees
         private int val;
-        private double xbound;
+        private double lbound, rbound;
+        private double upbound, lowbound;
 
         private XNode(Point2D p, int n) {
             this.p = p;
@@ -135,7 +146,21 @@ public class KdTree {
 
         @Override
         Node makeNode(Point2D p, int n) {
-            return new YNode(p, n);
+            YNode node = new YNode(p, n);
+            int cmp = compareTo(p);
+            if (cmp < 0) {
+                node.upbound = this.p.y();
+                node.lowbound = lowbound;
+            } else if (cmp > 0) {
+                node.lowbound = this.p.y();
+                node.upbound = upbound;
+            } else {
+                node.lowbound = this.p.y();
+                node.upbound = this.p.y();
+            }
+            node.rbound = rbound;
+            node.lbound = lbound;
+            return node;
         }
 
         public int compareTo(Node that) {
@@ -151,14 +176,9 @@ public class KdTree {
             StdDraw.setPenColor(StdDraw.BLUE);
         }
 
-        @Override
-        void drawLine(Point2D point) {
+        void drawLine() {
             setPenColor();
-            if (compareTo(point) < 0) {
-                StdDraw.line(point.x(), this.p.y(), 1, this.p.y());
-            } else {
-                StdDraw.line(point.x(), this.p.y(), 0, this.p.y());
-            }
+            StdDraw.line(lbound, this.p.y(), rbound, this.p.y());
         }
     }
 
@@ -177,6 +197,10 @@ public class KdTree {
     public void insert(Point2D p) {             // add the point to the set (if it is not already in the set)
         if (isEmpty()) {
             root = new YNode(p, count);
+            root.lbound = 0.0;
+            root.rbound = 1.0;
+            root.upbound = 1.0;
+            root.lowbound = 0.0;
             count++;
         } else {
             Node node = root;
@@ -239,8 +263,10 @@ public class KdTree {
         
         while (stack.size() > 0) {
             node = stack.pop();
+            node.drawLine();
             if (node.right != null) {
                 node = node.right;
+                node.drawLine();
                 while (node != null) {
                     stack.push(node);
                     node = node.left;
@@ -259,59 +285,37 @@ public class KdTree {
 //        draw(root, min, max, null);
     }
 
-    private void draw(Node x, Node lo, Node hi, Node parent) {
-        if (x == null) return;
-        int cmplo = x.compareTo(lo);
-        int cmphi = x.compareTo(hi);
-        if (cmplo < 0) draw(x.left, lo, hi, x);
-        if (cmplo <= 0 && cmphi >= 0) {
-//            StdOut.print("Drawing: ");
-//            StdOut.println(x.p);
-            x.p.draw();
-            if (parent != null) x.drawLine(parent.p);
-            else {
-                x.setPenColor();
-                StdDraw.line(x.p.x(), 0, x.p.x(), 1);
-            }
-        }
-        if (cmphi > 0) draw(x.right, lo, hi, x);
-    }
+//    private void draw(Node x, Node lo, Node hi, Node parent) {
+//        if (x == null) return;
+//        int cmplo = x.compareTo(lo);
+//        int cmphi = x.compareTo(hi);
+//        if (cmplo < 0) draw(x.left, lo, hi, x);
+//        if (cmplo <= 0 && cmphi >= 0) {
+////            StdOut.print("Drawing: ");
+////            StdOut.println(x.p);
+//            x.p.draw();
+//            if (parent != null) x.drawLine(parent.p);
+//            else {
+//                x.setPenColor();
+//                StdDraw.line(x.p.x(), 0, x.p.x(), 1);
+//            }
+//        }
+//        if (cmphi > 0) draw(x.right, lo, hi, x);
+//    }
 
     public Iterable<Point2D> range(RectHV rect) {            // all points that are inside the rectangle 
         Stack<Point2D> range = new Stack<Point2D>();
         return range;
     }
 
+    //find the point furthest down the tree and then recursively check its distance compared to the dividing lines.
+    //if a distance to a dividing line is shorter than the point, search the other side of that line (the other subtree)
     public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty 
         Point2D champion = null;
         return champion;
     }
 
-    private static int binlog(int bits) // returns 0 for bits=0
-    {
-        int log = 0;
-        if ((bits & 0xffff0000) != 0) {
-            bits >>>= 16;
-            log = 16;
-        }
-        if (bits >= 256) {
-            bits >>>= 8;
-            log += 8;
-        }
-        if (bits >= 16) {
-            bits >>>= 4;
-            log += 4;
-        }
-        if (bits >= 4) {
-            bits >>>= 2;
-            log += 2;
-        }
-        return log + (bits >>> 1);
-    }
-
     public static void main(String[] args) {                 // unit testing of the methods (optional) 
-        int log = binlog(1025);
-        StdOut.println(log);
     }
 
 }
