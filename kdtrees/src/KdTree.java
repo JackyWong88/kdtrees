@@ -20,14 +20,15 @@ public class KdTree {
     private YNode root;
 
     private abstract static class Node {
-
-        Point2D p;
-        Node left, right;  // left and right subtrees
-        int val;
+        private Point2D p;
+        private Node left, right;  // left and right subtrees
+        private int val;
+        private double xbound, ybound;
 
         abstract int compareTo(Point2D p);
 
         abstract int compareTo(RectHV rect);
+        abstract int compareTo(Node that);
 
         abstract Node makeNode(Point2D p, int n);
 
@@ -37,18 +38,25 @@ public class KdTree {
         //abstract void lineThroughPoint(Point2D point);
         abstract void drawLine(Point2D point);
 
-        private Node(Point2D p, int val) {
+//        private Node(Point2D p, int val) {
+//            this.p = p;
+//            this.val = val;
+//            left = null;
+//            right = null;
+//        }
+    }
+
+    private class YNode extends Node {
+        private Point2D p;
+        private Node left, right;  // left and right subtrees
+        private int val;
+        private double bound;
+
+        private YNode(Point2D p, int val) {
             this.p = p;
             this.val = val;
             left = null;
             right = null;
-        }
-    }
-
-    private class YNode extends Node {
-
-        private YNode(Point2D p, int val) {
-            super(p, val);
         }
 
         @Override
@@ -74,7 +82,9 @@ public class KdTree {
 
         public int compareTo(Node that) {
             if (this.p.y() < that.p.y()) return -1;
-            if (this.p.y() > that.p.y()) return 1;
+            else if (this.p.y() > that.p.y()) return 1;
+            else if (this.p.x() < that.p.x()) return -1;
+            else if (this.p.x() > that.p.x()) return 1;
             return 0;
         }
 
@@ -89,15 +99,22 @@ public class KdTree {
             if (compareTo(point) < 0) {
                 StdDraw.line(this.p.x(), 1, this.p.x(), point.y());
             } else {
-                StdDraw.line(point.x(), this.p.y(), 0, this.p.y());
+                StdDraw.line(this.p.x(), 0, this.p.x(), point.y());
             }
         }
     }
 
     private class XNode extends Node {
+        private Point2D p;
+        private Node left, right;  // left and right subtrees
+        private int val;
+        private double xbound;
 
         private XNode(Point2D p, int n) {
-            super(p, n);
+            this.p = p;
+            this.val = val;
+            left = null;
+            right = null;
         }
 
         @Override
@@ -123,7 +140,9 @@ public class KdTree {
 
         public int compareTo(Node that) {
             if (this.p.x() < that.p.x()) return -1;
-            if (this.p.x() > that.p.x()) return 1;
+            else if (this.p.x() > that.p.x()) return 1;
+            else if (this.p.y() < that.p.y()) return 1;
+            else if (this.p.y() > that.p.y()) return -1;
             return 0;
         }
 
@@ -210,19 +229,37 @@ public class KdTree {
     }
 
     public void draw() {                        // draw all points to standard draw 
-        if (isEmpty()) return;
-        Node max = root;
-        while (max.right != null) {
-            max = max.right;
+        if (root == null) return;
+        Stack<Node> stack = new Stack<Node>();
+        Node node = root;
+        while (node != null) {
+            stack.push(node);
+            node = node.left;
         }
-        Node min = root;
-        while (min.left != null) {
-            min = min.left;
+        
+        while (stack.size() > 0) {
+            node = stack.pop();
+            if (node.right != null) {
+                node = node.right;
+                while (node != null) {
+                    stack.push(node);
+                    node = node.left;
+                }
+            }
         }
-        draw(root, min.p, max.p, null);
+//        if (isEmpty()) return;
+//        Node max = root;
+//        while (max.right != null) {
+//            max = max.right;
+//        }
+//        Node min = root;
+//        while (min.left != null) {
+//            min = min.left;
+//        }
+//        draw(root, min, max, null);
     }
 
-    private void draw(Node x, Point2D lo, Point2D hi, Node parent) {
+    private void draw(Node x, Node lo, Node hi, Node parent) {
         if (x == null) return;
         int cmplo = x.compareTo(lo);
         int cmphi = x.compareTo(hi);
