@@ -1,4 +1,3 @@
-
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.Stack;
@@ -20,10 +19,11 @@ public class KdTree {
     private YNode root;
 
     private abstract static class Node {
-        private Point2D p;
-        private Node left, right;  // left and right subtrees
-        private int val;
-        private double xbound, ybound;
+        Point2D p;
+        Node left, right;  // left and right subtrees
+        int val;
+        double upbound, lowbound;
+        double lbound, rbound;
 
         abstract int compareTo(Point2D p);
 
@@ -32,32 +32,24 @@ public class KdTree {
 
         abstract Node makeNode(Point2D p, int n);
 
-        //abstract RectHV rectCompute(RectHV parentRect, String side);
+        //abstract RectHV rectCompute(RectHV parentRect);
         abstract void setPenColor();
 
         //abstract void lineThroughPoint(Point2D point);
         abstract void drawLine();
 
-//        private Node(Point2D p, int val) {
-//            this.p = p;
-//            this.val = val;
-//            left = null;
-//            right = null;
-//        }
-    }
-
-    private class YNode extends Node {
-        private Point2D p;
-        private Node left, right;  // left and right subtrees
-        private int val;
-        private double upbound, lowbound;
-        private double lbound, rbound;
-
-        private YNode(Point2D p, int val) {
+        private Node(Point2D p, int val) {
             this.p = p;
             this.val = val;
             left = null;
             right = null;
+        }
+    }
+
+    private class YNode extends Node {
+
+        private YNode(Point2D p, int val) {
+            super(p, val);
         }
 
         @Override
@@ -71,8 +63,8 @@ public class KdTree {
 
         @Override
         int compareTo(RectHV rect) {
-            if (rect.ymin() > this.p.y()) return -1;
-            if (rect.ymax() < this.p.y()) return 1;
+            if (rect.xmin() > this.p.x()) return 1;
+            if (rect.xmax() < this.p.x()) return -1;
             return 0;
         }
 
@@ -115,17 +107,9 @@ public class KdTree {
     }
 
     private class XNode extends Node {
-        private Point2D p;
-        private Node left, right;  // left and right subtrees
-        private int val;
-        private double lbound, rbound;
-        private double upbound, lowbound;
 
         private XNode(Point2D p, int n) {
-            this.p = p;
-            this.val = val;
-            left = null;
-            right = null;
+            super(p, n);
         }
 
         @Override
@@ -139,8 +123,8 @@ public class KdTree {
 
         @Override
         int compareTo(RectHV rect) {
-            if (rect.xmin() > this.p.x()) return -1;
-            if (rect.xmax() < this.p.x()) return 1;
+            if (rect.ymin() > this.p.y()) return 1;
+            if (rect.ymax() < this.p.y()) return -1;
             return 0;
         }
 
@@ -305,6 +289,27 @@ public class KdTree {
 
     public Iterable<Point2D> range(RectHV rect) {            // all points that are inside the rectangle 
         Stack<Point2D> range = new Stack<Point2D>();
+        if (root == null) return range;
+        Stack<Node> stack = new Stack<Node>();
+        
+        Node node = root;
+        //StdOut.println(node.p);
+        stack.push(node);
+        //StdOut.println("The first obj: " + stack.pop().p);
+        
+        while (stack.size() > 0) {
+            node = stack.pop();
+            int cmp = node.compareTo(rect);
+            if (cmp > 0 && node.right != null) {
+                stack.push(node.right);
+            } else if (cmp < 0 && node.left != null) {
+                stack.push(node.left);
+            } else {
+                if (rect.contains(node.p)) range.push(node.p);
+                if (node.left != null) stack.push(node.left);
+                if (node.right != null) stack.push(node.right);
+            }
+        }
         return range;
     }
 

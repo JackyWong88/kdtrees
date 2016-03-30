@@ -96,7 +96,7 @@ public class RangeSearchVisualizer {
             for (Point2D p : kdtree.range(rect))
                 p.draw();
 
-            StdDraw.show(40);
+            StdDraw.show(100);
         }
     }
 }
