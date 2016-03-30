@@ -293,9 +293,7 @@ public class KdTree {
         Stack<Node> stack = new Stack<Node>();
         
         Node node = root;
-        //StdOut.println(node.p);
         stack.push(node);
-        //StdOut.println("The first obj: " + stack.pop().p);
         
         while (stack.size() > 0) {
             node = stack.pop();
@@ -315,9 +313,47 @@ public class KdTree {
 
     //find the point furthest down the tree and then recursively check its distance compared to the dividing lines.
     //if a distance to a dividing line is shorter than the point, search the other side of that line (the other subtree)
-    public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty 
-        Point2D champion = null;
-        return champion;
+//    public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty 
+//        Node champion = null;
+//        Stack<Node> stack = new Stack<Node>();
+//        
+//        Node node = root;
+//        stack.push(node);
+//        
+//        while (node != null) {
+//            node = stack.peek();
+//            int cmp = node.compareTo(p);
+//            if (cmp > 0) {
+//                stack.push(node.right);
+//            } else if (cmp < 0) {
+//                stack.push(node.left);
+//            } else {
+//                return node.p;
+//            }
+//        }
+//        
+//        while (stack.size() > 0) {
+//            champion = stack.pop();
+//            
+//        }
+//        
+//        return champion.p;
+//    }
+    
+    public Point2D nearest(Point2D p) {
+        double distance = p.distanceSquaredTo(root.p);
+        return nearest(p, root, distance).p;
+    }
+    
+    public Node nearest(Point2D p, Node node, double min) {
+        if (node == null) return null;
+        int cmp = node.compareTo(p);
+        if (cmp > 0 && node.right != null) {
+            node = node.right;
+            if (node.p.distanceSquaredTo(p) < min)
+                
+        }
+        return node;
     }
 
     public static void main(String[] args) {                 // unit testing of the methods (optional) 
