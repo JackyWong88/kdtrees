@@ -17,6 +17,8 @@ public class KdTree {
 
     private int count = 0;
     private YNode root;
+    private double shortest = Double.POSITIVE_INFINITY;
+    private Node closest;
 
     private abstract static class Node {
         Point2D p;
@@ -341,19 +343,58 @@ public class KdTree {
 //    }
     
     public Point2D nearest(Point2D p) {
-        double distance = p.distanceSquaredTo(root.p);
-        return nearest(p, root, distance).p;
+        if (p == null) return null;
+        if (root == null) return null;
+        shortest = p.distanceSquaredTo(root.p);
+        closest = root;
+        Node closer = nearest(p, root);
+        return closest.p;
     }
     
-    public Node nearest(Point2D p, Node node, double min) {
+    private Node nearest(Point2D p, Node node) {
         if (node == null) return null;
+        Node shorter = null;
         int cmp = node.compareTo(p);
-        if (cmp > 0 && node.right != null) {
-            node = node.right;
-            if (node.p.distanceSquaredTo(p) < min)
-                
+        if (cmp > 0) {
+            double distance = node.p.distanceSquaredTo(p);
+            if (distance < shortest) {
+                shortest = distance;
+                closest = node;
+            }
+            shorter = nearest(p, node.right);
+        } else if (cmp < 0) {
+            double distance = node.p.distanceSquaredTo(p);
+            if (distance < shortest) {
+                shortest = distance;
+                closest = node;
+            }
+            shorter = nearest(p, node.left);
+        } else {
+            shortest = 0.0;
+            closest = node;
+            return node;
         }
-        return node;
+        if (shorter == null) {
+            double dx = 0.0, dy = 0.0;
+            double x = p.x();
+            double y = p.y();
+            if      (x < node.lbound) dx = x - node.lbound;
+            else if (x > node.rbound) dx = x - node.rbound;
+            if      (y < node.lowbound) dy = y- node.lowbound;
+            else if (y > node.upbound) dy = y - node.upbound;
+            double dist = dx*dx + dy*dy;
+            double distance = node.p.distanceSquaredTo(p);
+            if (dist < shortest) {
+                if (dist < distance) {
+                    if (cmp > 0) {
+                        shorter = nearest(p, node.left);
+                    } else if (cmp < 0) {
+                        shorter = nearest(p, node.right);
+                    }
+                }
+            } else return null;
+        }
+        return shorter;
     }
 
     public static void main(String[] args) {                 // unit testing of the methods (optional) 
